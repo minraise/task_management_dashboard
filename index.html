@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>로컬 업무 관리</title>
+  <link rel="icon" href="local-task-manager.ico">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="주 메뉴">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" role="img"><path d="M7 4h10a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3Z"></path><path d="M8 9h8M8 13h5M8 17h7"></path></svg>
+        </div>
+        <div>
+          <h1>로컬 업무 관리</h1>
+          <p>개인 업무 대시보드</p>
+        </div>
+      </div>
+
+      <nav class="nav-list">
+        <button class="nav-item is-active" type="button" data-page="tasks">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"></path></svg></span>
+          <span>업무 현황</span>
+          <strong id="taskNavCount">0</strong>
+        </button>
+        <button class="nav-item" type="button" data-page="calendar">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 10h18"></path><path d="M5 4h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"></path></svg></span>
+          <span>캘린더</span>
+          <strong id="calendarNavCount">0</strong>
+        </button>
+        <button class="nav-item" type="button" data-page="feedback">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M8 9h8M8 13h5"></path></svg></span>
+          <span>피드백 정리</span>
+          <strong id="feedbackNavCount">0</strong>
+        </button>
+      </nav>
+
+      <div class="storage-card">
+        <span class="status-dot" id="storageDot" aria-hidden="true"></span>
+        <div>
+          <strong id="storageStatus">로컬 저장 준비됨</strong>
+          <p>이 브라우저에만 저장됩니다.</p>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <header class="topbar">
+        <div class="view-heading">
+          <p class="eyebrow" id="viewEyebrow">Work Board</p>
+          <h2 id="viewTitle">업무 현황</h2>
+          <p id="viewSubcopy">진행 중과 완료함을 한 화면에서 확인합니다.</p>
+        </div>
+        <div class="global-actions">
+          <label class="search-box" for="searchInput">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"></path></svg>
+            <input id="searchInput" type="search" placeholder="업무, 상태, 링크, 이름 검색" autocomplete="off">
+          </label>
+          <button class="button secondary" type="button" id="downloadCsv">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg>
+            <span>CSV 다운로드</span>
+          </button>
+          <button class="button primary" type="button" id="newProjectBtn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+            <span>새 업무 추가</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="page-panel" id="tasksPage">
+        <section class="stats-grid" aria-label="업무 요약">
+          <div class="stat-tile"><span>진행 프로젝트</span><strong id="activeProjectStat">0</strong></div>
+          <div class="stat-tile danger"><span>오늘/지연</span><strong id="criticalStat">0</strong></div>
+          <div class="stat-tile warning"><span>D-3 이내</span><strong id="soonStat">0</strong></div>
+          <div class="stat-tile calm"><span>하위 완료</span><strong id="subtaskStat">0/0</strong></div>
+        </section>
+        <section class="split-board three-board" aria-live="polite">
+          <div class="dashboard-top-row">
+            <div class="board-column active-column focus-column">
+              <div class="section-bar"><h3>시간내서 해야 하는 것</h3><span id="focusResultCount">0개</span></div>
+              <div class="task-list" id="focusTaskList" data-dashboard-group="focus"></div>
+            </div>
+            <div class="board-column later-column">
+              <div class="section-bar"><h3>시간나면 할 것</h3><span id="laterResultCount">0개</span></div>
+              <div class="task-list" id="laterTaskList" data-dashboard-group="later"></div>
+            </div>
+            <div class="board-column hold-column">
+              <div class="section-bar"><h3>보류</h3><span id="holdResultCount">0개</span></div>
+              <div class="task-list" id="holdTaskList" data-dashboard-group="hold"></div>
+            </div>
+          </div>
+          <div class="dashboard-repeat-row">
+            <div class="board-column recurring-column">
+              <div class="section-bar"><h3>반복 업무</h3><span id="recurringResultCount">0개</span></div>
+              <div class="task-list" id="recurringTaskList" data-dashboard-group="recurring"></div>
+            </div>
+          </div>
+          <div class="dashboard-archive-row">
+            <div class="board-column archived-column">
+              <div class="section-bar"><h3>완료함</h3><span id="archiveResultCount">0개</span></div>
+              <div class="task-list" id="archiveTaskList" data-dashboard-group="archived"></div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+
+      <section class="page-panel is-hidden" id="calendarPage">
+        <section class="calendar-layout">
+          <div class="calendar-panel">
+            <div class="calendar-toolbar">
+              <div><h3 id="calendarMonthLabel">이번 달</h3><p id="calendarSummary">일정을 불러오는 중입니다.</p></div>
+              <div class="calendar-controls">
+                <button class="icon-button calendar-prev" type="button" id="calendarPrev" aria-label="이전 달"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg></button>
+                <button class="button secondary compact" type="button" id="calendarToday">오늘</button>
+                <button class="icon-button" type="button" id="calendarNext" aria-label="다음 달"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg></button>
+              </div>
+            </div>
+            <div class="calendar-weekdays" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+          </div>
+          <aside class="calendar-agenda">
+            <div class="section-bar"><h3 id="calendarAgendaTitle">이번 달 일정</h3><span id="calendarResultCount">0개</span></div>
+            <div class="calendar-agenda-list" id="calendarAgendaList"></div>
+          </aside>
+        </section>
+      </section>
+
+
+      <section class="page-panel is-hidden" id="feedbackPage">
+        <form class="feedback-form" id="feedbackForm">
+          <input type="hidden" id="feedbackId">
+          <div class="form-head">
+            <div><p class="eyebrow">Feedback</p><h3 id="feedbackFormTitle">피드백 메모 추가</h3></div>
+            <button class="button secondary" type="button" id="feedbackCancelEdit">입력 초기화</button>
+          </div>
+          <label class="field"><span>카테고리 태그</span><textarea id="feedbackCategory" rows="2" maxlength="220" placeholder="#업무방식 ↵ #사회생활"></textarea><small class="field-hint">Enter로 태그를 나누면 #태그로 정리됩니다.</small><div class="tag-suggestions" id="feedbackCategorySuggestions"></div></label>
+          <label class="field"><span>피드백 메모</span><textarea id="feedbackContent" rows="8" maxlength="3000" required placeholder="피드백을 통째로 정리해두세요."></textarea></label>
+          <div class="modal-actions"><button class="button primary" type="submit">피드백 저장</button></div>
+        </form>
+        <section class="feedback-section">
+          <div class="section-bar"><h3>피드백 목록</h3><span id="feedbackResultCount">0개</span></div>
+          <div class="feedback-list" id="feedbackList"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <dialog class="modal" id="projectDialog">
+    <form class="modal-card" id="projectForm">
+      <input type="hidden" id="projectId">
+      <div class="modal-head">
+        <div><p class="eyebrow">Project</p><h3 id="projectDialogTitle">새 업무 추가</h3></div>
+        <button class="icon-button" type="button" data-close-dialog="projectDialog" aria-label="닫기"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+      </div>
+      <label class="field"><span>상위 프로젝트명</span><input id="projectTitle" type="text" maxlength="80" required placeholder="예: 대구한의대"></label>
+      <label class="field"><span>현재 상태</span><input id="projectStatusNote" type="text" maxlength="120" placeholder="예: 자료 대기, 진행 중, 검토 중, 피드백 요청"></label>
+      <label class="field"><span>업무 준 사람</span><textarea id="projectRequester" rows="2" maxlength="240" placeholder="#Jeong ↵ #Min"></textarea><small class="field-hint">Enter로 여러 명을 나누면 같은 태그끼리 자동으로 묶입니다.</small><div class="tag-suggestions" id="projectRequesterSuggestions"></div></label>
+      <label class="field"><span>진행 중요도</span><select id="projectImportance"><option value="focus">시간내서 해야 하는 것</option><option value="later">시간나면 할 것</option></select></label>
+      <label class="field"><span>업무 유형</span><select id="projectDeadlineMode"><option value="date">특정 마감일</option><option value="ongoing">상시 진행</option><option value="routine">반복 업무</option><option value="subtask">하위 업무 일정 기준</option></select></label>
+      <label class="field" id="projectDueField"><span>프로젝트 마감일</span><input id="projectDue" type="date"></label>
+      <label class="field check-field is-hidden" id="projectRoutineField"><input id="projectCalendarRoutine" type="checkbox"><span>캘린더 반복 체크 사용</span><small class="field-hint">선택한 요일과 주기로 캘린더에 체크 항목을 표시합니다.</small></label>
+      <div class="routine-options is-hidden" id="projectRoutineOptions">
+        <label class="field"><span>반복 시작일</span><input id="projectRoutineStart" type="date"><small class="field-hint">격주 반복은 이 날짜가 포함된 주부터 계산합니다.</small></label>
+        <label class="field"><span>반복 방식</span><select id="projectRoutineFrequency"><option value="weekly">매주</option><option value="monthly">매달</option></select></label>
+        <label class="field is-hidden" id="projectRoutineMonthdayField"><span>매달 반복 날짜</span><input id="projectRoutineMonthday" type="number" min="1" max="31"><small class="field-hint">해당 날짜가 없는 달에는 그 달의 마지막 날에 표시됩니다.</small></label>
+        <label class="field" id="projectRoutineIntervalField"><span>반복 주기</span><select id="projectRoutineInterval"><option value="1">매주</option><option value="2">격주</option></select></label>
+        <fieldset class="routine-weekday-field" id="projectRoutineWeekdayField">
+          <legend>반복 날짜/요일</legend>
+          <div class="weekday-options" id="projectRoutineWeekdays">
+            <label><input type="checkbox" value="1" checked><span>월</span></label>
+            <label><input type="checkbox" value="2" checked><span>화</span></label>
+            <label><input type="checkbox" value="3" checked><span>수</span></label>
+            <label><input type="checkbox" value="4" checked><span>목</span></label>
+            <label><input type="checkbox" value="5" checked><span>금</span></label>
+            <label><input type="checkbox" value="6"><span>토</span></label>
+            <label><input type="checkbox" value="0"><span>일</span></label>
+          </div>
+          <small class="field-hint">예: 월/수/금 + 격주를 고르면 2주마다 월/수/금에 표시됩니다.</small>
+        </fieldset>
+      </div>
+      <label class="field"><span>관련 링크</span><textarea id="projectLinks" maxlength="1200" rows="3" placeholder="링크를 한 줄에 하나씩 붙여넣으세요."></textarea></label>
+      <label class="field"><span>메모</span><textarea id="projectNote" maxlength="800" rows="4" placeholder="필요한 참고 내용을 적어두세요."></textarea></label>
+      <div class="modal-actions"><button class="button secondary" type="button" data-close-dialog="projectDialog">취소</button><button class="button primary" type="submit">저장</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="subtaskDialog">
+    <form class="modal-card" id="subtaskForm">
+      <input type="hidden" id="subtaskProjectId"><input type="hidden" id="subtaskId">
+      <div class="modal-head">
+        <div><p class="eyebrow">Subtask</p><h3 id="subtaskDialogTitle">하위 업무 추가</h3></div>
+        <button class="icon-button" type="button" data-close-dialog="subtaskDialog" aria-label="닫기"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+      </div>
+      <label class="field"><span>하위 업무명</span><input id="subtaskTitle" type="text" maxlength="100" required placeholder="예: 정 피드백"></label>
+      <label class="field" id="subtaskDueField"><span>하위 업무 마감일</span><input id="subtaskDue" type="date"></label>
+      <label class="field check-field"><input id="subtaskRoutine" type="checkbox"><span>반복 업무로 설정</span><small class="field-hint">반복 업무는 상단 체크리스트와 캘린더에 표시됩니다.</small></label>
+      <div class="routine-options is-hidden" id="subtaskRoutineOptions">
+        <label class="field"><span>반복 시작일</span><input id="subtaskRoutineStart" type="date"></label>
+        <label class="field"><span>반복 방식</span><select id="subtaskRoutineFrequency"><option value="weekly">매주</option><option value="monthly">매달</option></select></label>
+        <label class="field is-hidden" id="subtaskRoutineMonthdayField"><span>매달 반복 날짜</span><input id="subtaskRoutineMonthday" type="number" min="1" max="31"></label>
+        <fieldset class="routine-weekday-field" id="subtaskRoutineWeekdayField">
+          <legend>반복 요일</legend>
+          <div class="weekday-options" id="subtaskRoutineWeekdays">
+            <label><input type="checkbox" value="1" checked><span>월</span></label><label><input type="checkbox" value="2" checked><span>화</span></label><label><input type="checkbox" value="3" checked><span>수</span></label><label><input type="checkbox" value="4" checked><span>목</span></label><label><input type="checkbox" value="5" checked><span>금</span></label><label><input type="checkbox" value="6"><span>토</span></label><label><input type="checkbox" value="0"><span>일</span></label>
+          </div>
+        </fieldset>
+      </div>
+      <label class="field"><span>관련 링크</span><textarea id="subtaskLinks" maxlength="1200" rows="3" placeholder="비워두면 기한은 상위 업무 마감일을 따라갑니다. 링크는 한 줄에 하나씩 입력하세요."></textarea></label>
+      <label class="field"><span>메모</span><textarea id="subtaskNote" maxlength="800" rows="3" placeholder="이 하위 업무에서 기억할 내용을 적어두세요."></textarea></label>
+      <div class="modal-actions"><button class="button secondary" type="button" data-close-dialog="subtaskDialog">취소</button><button class="button primary" type="submit">저장</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="confirmDialog">
+    <div class="modal-card compact">
+      <div class="modal-head"><div><p class="eyebrow">Confirm</p><h3>삭제 확인</h3></div></div>
+      <p class="confirm-copy" id="confirmMessage">삭제하시겠습니까?</p>
+      <div class="modal-actions"><button class="button secondary" type="button" id="confirmCancel">취소</button><button class="button danger" type="button" id="confirmAccept">삭제</button></div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
